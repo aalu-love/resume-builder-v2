@@ -725,7 +725,6 @@ textarea:focus-visible {
 .entry-bullets li {
   padding-left: 3px;
   margin: 1px 0;
-  display: flex;
 }
 
 .skill-grid {
@@ -1170,7 +1169,7 @@ textarea:focus-visible {
 }
 
 .main-column .entry-bullets {
-  margin-left: 12px;
+  margin-left: 0px;
 }
 
 .main-column .paper-summary,

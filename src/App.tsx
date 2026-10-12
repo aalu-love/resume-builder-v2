@@ -110,6 +110,15 @@ function parseEntry(line: string, fallbackRole = ''): ResumeEntry {
   };
 }
 
+function renderRich(text: string): ReactNode {
+  const parts = text.split(/(\*\*[^*]+\*\*)/g);
+  return parts.map((part, i) =>
+    part.startsWith('**') && part.endsWith('**') && part.length > 4
+      ? <strong key={i}>{part.slice(2, -2)}</strong>
+      : part
+  );
+}
+
 function parseResume(source: string): ResumeData {
   const lines = source.split(/\r?\n/);
   const data: ResumeData = {
@@ -257,7 +266,9 @@ function parseResume(source: string): ResumeData {
 
 function fitCopy(text: string, fit: boolean, limit: number) {
   if (!fit || text.length <= limit) return text;
-  return `${text.slice(0, limit).replace(/\s+\S*$/, '')}…`;
+  let out = text.slice(0, limit).replace(/\s+\S*$/, '');
+  if ((out.match(/\*\*/g) || []).length % 2 === 1) out += '**'; // close unfinished bold
+  return `${out}…`;
 }
 
 function SectionHeading({ children }: { children: string; }) {
@@ -267,7 +278,7 @@ function SectionHeading({ children }: { children: string; }) {
 function ContactLine({ items, className = '' }: { items: string[]; className?: string; }) {
   return (
     <div className={`paper-contact ${className}`} data-testid="text-resume-contact">
-      {items.map((item, index) => <span key={`${item}-${index}`}>{item}</span>)}
+      {items.map((item, index) => <span key={`${item}-${index}`}>{renderRich(item)}</span>)}
     </div>
   );
 }
@@ -276,7 +287,7 @@ function Skills({ data, fit }: { data: ResumeData; fit: boolean; }) {
   if (!data.skills.length) return null;
   return (
     <div className="skill-grid" data-testid="list-resume-skills">
-      {data.skills.map((skill, index) => <span className="skill-item" key={`${skill}-${index}`}>{fitCopy(skill, fit, 54)}</span>)}
+      {data.skills.map((skill, index) => <span className="skill-item" key={`${skill}-${index}`}>{renderRich(fitCopy(skill, fit, 54))}</span>)}
     </div>
   );
 }
@@ -285,7 +296,7 @@ function Languages({ data, fit }: { data: ResumeData; fit: boolean; }) {
   if (!data.languages.length) return null;
   return (
     <div className="skill-grid" data-testid="list-resume-languages">
-      {data.languages.map((language, index) => <span className="skill-item" key={`${language}-${index}`}>{fitCopy(language, fit, 54)}</span>)}
+      {data.languages.map((language, index) => <span className="skill-item" key={`${language}-${index}`}>{renderRich(fitCopy(language, fit, 54))}</span>)}
     </div>
   );
 }
@@ -294,7 +305,7 @@ function TextList({ items, fit, className = '' }: { items: string[]; fit: boolea
   if (!items.length) return null;
   return (
     <ul className={`text-list ${className}`}>
-      {items.map((item, index) => <li key={`${item}-${index}`}>{fitCopy(item, fit, 160)}</li>)}
+      {items.map((item, index) => <li key={`${item}-${index}`}>{renderRich(fitCopy(item, fit, 160))}</li>)}
     </ul>
   );
 }
@@ -312,7 +323,7 @@ function EntryList({ entries, fit, className = '' }: { entries: ResumeEntry[]; f
           {entry.bullets.length > 0 && (
             <ul className="entry-bullets">
               {entry.bullets.map((bullet, bulletIndex) => (
-                <li key={`${bullet}-${bulletIndex}`}>{fitCopy(bullet, fit, 132)}</li>
+                <li key={`${bullet}-${bulletIndex}`}>{renderRich(fitCopy(bullet, fit, 132))}</li>
               ))}
             </ul>
           )}
@@ -337,7 +348,7 @@ function ClassicPaper({ data, fit }: { data: ResumeData; fit: boolean; }) {
     <>
       <ResumeHeader data={data} centered />
       <div className="classic-rule" />
-      {data.summary && <section className="paper-section"><SectionHeading>About Me</SectionHeading><p className="paper-summary" data-testid="text-resume-summary">{fitCopy(data.summary, fit, 470)}</p></section>}
+      {data.summary && <section className="paper-section"><SectionHeading>About Me</SectionHeading><p className="paper-summary" data-testid="text-resume-summary">{renderRich(fitCopy(data.summary, fit, 470))}</p></section>}
       {data.education.length > 0 && <section className="paper-section"><SectionHeading>Education</SectionHeading><EntryList entries={data.education} fit={fit} /></section>}
       {data.experience.length > 0 && <section className="paper-section"><SectionHeading>Work Experience</SectionHeading><EntryList entries={data.experience} fit={fit} /></section>}
       {data.projects.length > 0 && <section className="paper-section"><SectionHeading>Projects</SectionHeading><TextList items={data.projects} fit={fit} /></section>}
@@ -353,13 +364,13 @@ function CleanPaper({ data, fit }: { data: ResumeData; fit: boolean; }) {
     <>
       <ResumeHeader data={data} centered />
       <div className="clean-rule" />
-      {data.summary && <section className="paper-section"><SectionHeading>About Me</SectionHeading><p className="paper-summary" data-testid="text-resume-summary">{fitCopy(data.summary, fit, 430)}</p></section>}
+      {data.summary && <section className="paper-section"><SectionHeading>About Me</SectionHeading><p className="paper-summary" data-testid="text-resume-summary">{renderRich(fitCopy(data.summary, fit, 430))}</p></section>}
       {data.education.length > 0 && <section className="paper-section"><SectionHeading>Education</SectionHeading><EntryList entries={data.education} fit={fit} /></section>}
       {data.experience.length > 0 && <section className="paper-section"><SectionHeading>Professional Experience</SectionHeading><EntryList entries={data.experience} fit={fit} /></section>}
       {data.skills.length > 0 && <section className="paper-section"><SectionHeading>Technical Skills</SectionHeading><Skills data={data} fit={fit} /></section>}
       {data.projects.length > 0 && <section className="paper-section"><SectionHeading>Projects</SectionHeading><TextList items={data.projects} fit={fit} /></section>}
       {data.certifications.length > 0 && <section className="paper-section"><SectionHeading>Certifications</SectionHeading><TextList items={data.certifications} fit={fit} /></section>}
-      {data.languages.length > 0 && <section className="paper-section"><SectionHeading>Additional Information</SectionHeading><p className="paper-summary" data-testid="text-resume-additional">{[...data.languages, ...data.additional].join(' · ')}</p></section>}
+      {data.languages.length > 0 && <section className="paper-section"><SectionHeading>Additional Information</SectionHeading><p className="paper-summary" data-testid="text-resume-additional">{renderRich([...data.languages, ...data.additional].join(' · '))}</p></section>}
     </>
   );
 }
@@ -368,7 +379,7 @@ function BandedPaper({ data, fit }: { data: ResumeData; fit: boolean; }) {
   return (
     <>
       <ResumeHeader data={data} />
-      {data.summary && <section className="paper-section"><SectionHeading>Summary</SectionHeading><p className="paper-summary" data-testid="text-resume-summary">{fitCopy(data.summary, fit, 430)}</p></section>}
+      {data.summary && <section className="paper-section"><SectionHeading>Summary</SectionHeading><p className="paper-summary" data-testid="text-resume-summary">{renderRich(fitCopy(data.summary, fit, 430))}</p></section>}
       {data.skills.length > 0 && <section className="paper-section"><SectionHeading>Technical Skills</SectionHeading><Skills data={data} fit={fit} /></section>}
       {data.experience.length > 0 && <section className="paper-section"><SectionHeading>Professional Experience</SectionHeading><EntryList entries={data.experience} fit={fit} /></section>}
       {data.education.length > 0 && <section className="paper-section"><SectionHeading>Education</SectionHeading><EntryList entries={data.education} fit={fit} /></section>}
@@ -391,11 +402,11 @@ function SidebarPaper({ data, fit }: { data: ResumeData; fit: boolean; }) {
           {data.languages.length > 0 && <section className="paper-section"><SectionHeading>Languages</SectionHeading><Languages data={data} fit={fit} /></section>}
         </aside>
         <div className="main-column">
-          {data.summary && <section className="paper-section"><SectionHeading>Profile</SectionHeading><p className="paper-summary" data-testid="text-resume-summary">{fitCopy(data.summary, fit, 430)}</p></section>}
+          {data.summary && <section className="paper-section"><SectionHeading>Profile</SectionHeading><p className="paper-summary" data-testid="text-resume-summary">{renderRich(fitCopy(data.summary, fit, 430))}</p></section>}
           {data.experience.length > 0 && <section className="paper-section"><SectionHeading>Work Experience</SectionHeading><EntryList entries={data.experience} fit={fit} /></section>}
           {data.projects.length > 0 && <section className="paper-section"><SectionHeading>Projects</SectionHeading><TextList items={data.projects} fit={fit} /></section>}
           {data.certifications.length > 0 && <section className="paper-section"><SectionHeading>Certifications</SectionHeading><TextList items={data.certifications} fit={fit} /></section>}
-          {data.additional.length > 0 && <section className="paper-section"><SectionHeading>Reference</SectionHeading><p className="paper-summary" data-testid="text-resume-additional">{fitCopy(data.additional.join(' '), fit, 240)}</p></section>}
+          {data.additional.length > 0 && <section className="paper-section"><SectionHeading>Reference</SectionHeading><p className="paper-summary" data-testid="text-resume-additional">{renderRich(fitCopy(data.additional.join(' '), fit, 240))}</p></section>}
         </div>
       </div>
     </>
