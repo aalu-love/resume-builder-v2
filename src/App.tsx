@@ -1,11 +1,11 @@
 import { type CSSProperties, type ReactNode, useEffect, useMemo, useState } from 'react';
-import { Check, ChevronDown, FileText, Info, Printer, RotateCcw, Sparkles } from 'lucide-react';
+import { Check, ChevronDown, Download, FileText, Info, Printer, RotateCcw, Sparkles } from 'lucide-react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { ErrorBoundary } from '@/components/error-boundary';
 import { Toaster } from '@/components/ui/toaster';
 import { TooltipProvider } from '@/components/ui/tooltip';
 import NotFound from '@/pages/not-found';
-import { Route, Switch, useLocation, Router as WouterRouter } from 'wouter';
+import { Route, Switch, useLocation, useParams, useSearch, Router as WouterRouter } from 'wouter';
 
 type ResumeEntry = {
   organization: string;
@@ -460,6 +460,25 @@ function Home() {
   const resetResume = () => setSource(SAMPLE_RESUME);
   const printResume = () => window.print();
 
+  const downloadPdf = async () => {
+    const response = await fetch('/api/resume-pdf', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ source, style, colorTheme, textSize }),
+    });
+    if (!response.ok) {
+      console.error('PDF generation failed', response.status);
+      return;
+    }
+    const blob = await response.blob();
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = 'resume.pdf';
+    link.click();
+    URL.revokeObjectURL(url);
+  };
+
   console.log('Resume data:', data);
 
   return (
@@ -613,6 +632,9 @@ function Home() {
             <button className="template-button" onClick={printResume} data-testid="button-print-preview">
               <Printer size={13} strokeWidth={1.8} /> Print / save PDF <Sparkles size={12} />
             </button>
+            <button className="template-button" onClick={downloadPdf} data-testid="button-download-pdf">
+              <Download size={13} strokeWidth={1.8} /> Download PDF
+            </button>
           </div>
         </section>
       </div>
@@ -620,11 +642,59 @@ function Home() {
   );
 }
 
+function SampleComponent() {
+  const params = useParams();
+  const search = useSearch();
+
+  const query = new URLSearchParams(search);
+  // const content = query.get("content") ?? "";
+
+  const content = (
+    query.get("content") ?? ""
+  )
+    .replace(/&/g, "")
+    .replace(/[\u0000-\u001F\u007F]/g, "")
+    .slice(0, 500);
+
+  return (
+    <div>
+      User ID: {params.style}
+      <br />
+      <textarea
+        className="resume-input"
+        value={content}
+        // onChange={(event) => setSource(event.target.value)}
+        spellCheck={false}
+        aria-label="Plain text resume template"
+        data-testid="input-resume-source"
+      />
+    </div>
+  );
+}
+
+type PrintPayload = { source: string; style: ResumeStyle; colorTheme: ColorTheme; textSize: TextSize; fit: boolean; };
+
+// Used by the PDF endpoint (server/render-pdf.ts): the server injects the settings
+// as window.__RESUME_PAYLOAD__ and prints this page, which matches the preview.
+function PrintPage() {
+  const payload = (window as unknown as { __RESUME_PAYLOAD__?: PrintPayload; }).__RESUME_PAYLOAD__;
+  const data = useMemo(() => parseResume(payload?.source ?? ''), [payload?.source]);
+
+  if (!payload) return <main>No resume data was provided.</main>;
+
+  return <ResumePaper data={data} style={payload.style} fit={payload.fit} colorTheme={payload.colorTheme} textSize={payload.textSize} />;
+}
+
 function Router() {
   return (
     <RoutedErrorBoundary>
       <Switch>
         <Route path="/" component={Home} />
+        <Route path="/print" component={PrintPage} />
+        <Route
+          path="/download/:style"
+          component={SampleComponent}
+        />
         <Route component={NotFound} />
       </Switch>
     </RoutedErrorBoundary>
