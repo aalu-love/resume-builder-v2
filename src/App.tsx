@@ -1,5 +1,5 @@
 import { type CSSProperties, type ReactNode, useEffect, useMemo, useState } from 'react';
-import { Check, ChevronDown, Download, FileText, Info, Printer, RotateCcw, Sparkles } from 'lucide-react';
+import { Apple, Check, ChevronDown, Download, FileText, Info, Printer, RotateCcw, Sparkles } from 'lucide-react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { ErrorBoundary } from '@/components/error-boundary';
 import { Toaster } from '@/components/ui/toaster';
@@ -63,7 +63,7 @@ LinkedIn: linkedin.com/in/mayachen
 Portfolio: mayachen.design
 
 Summary
-Product designer with 7 years of experience turning complex workflows into clear, useful tools. I work across research, systems thinking, and visual craft to help teams ship products people return to.
+**Product designer** with **7 years of experience** turning complex workflows into clear, useful tools. I work across research, systems thinking, and visual craft to help teams ship products people return to.
 
 Skills
 Programming: HTML & CSS
@@ -78,13 +78,13 @@ California College of the Arts | BFA, Interaction Design | 2015 — 2019
 
 Experiences
 Employee: Senior Product Designer Employer: Northstar Health Duration: 2022 — Present
-- Led the redesign of a clinician workflow used by 18,000 monthly practitioners, reducing time-to-complete by 31%.
-- Built a modular design system with engineering partners, bringing new feature delivery from weeks to days.
+- **Led the redesign** of a clinician workflow used by **18,000 monthly practitioners**, reducing time-to-complete by **31%**.
+- **Built a modular design system** with engineering partners, bringing new feature delivery from weeks to days.
 - Mentored two designers through quarterly critique and portfolio reviews.
 
 Employee: Product Designer Employer: Good Form Studio Duration: 2019 — 2022
-- Shaped early product direction for four venture-backed teams across health, finance, and education.
-- Ran 40+ interviews and usability studies, translating patterns into product strategy and prototypes.
+- **Shaped early product direction** for four venture-backed teams across health, finance, and education.
+- **Ran 40+ interviews** and usability studies, translating patterns into product strategy and prototypes.
 
 Projects
 - Design system for a healthcare platform
@@ -617,7 +617,10 @@ function Home() {
                     <span>{style === option.value ? 'Selected' : 'Preview'}</span>
                   </div>
                   <div className="style-preview-viewport">
-                    <ResumePaper data={data} style={option.value} fit={true} colorTheme={colorTheme} textSize={textSize} />
+                    <div className="w-full bg-gray-200 flex items-center justify-center p-4 h-full">
+                      <Apple size={32} color="hsl(190 10% 43%)" />
+                    </div>
+                    {/* <ResumePaper data={data} style={option.value} fit={true} colorTheme={colorTheme} textSize={textSize} /> */}
                   </div>
                   <div className="style-preview-card-foot">
                     <strong>{option.hint}</strong>
